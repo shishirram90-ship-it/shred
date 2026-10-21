@@ -1,1 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shred Log</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#F1F3F2;--s:#fff;--ink:#14201B;--mute:#5E6C66;--line:#D9E0DC;--p:#2B50E6;--c:#D08A0F;--f:#C24A66;--fi:#2A9461;--w:#1B94C4;--r:14px;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111614;--s:#1A211F;--ink:#E9EFEC;--mute:#98A6A0;--line:#2C3733;--p:#6C88FF;--c:#E8A93A;--f:#E27A93;--fi:#4CC88B;--w:#4BB8E6;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111614;--s:#1A211F;--ink:#E9EFEC;--mute:#98A6A0;--line:#2C3733;--p:#6C88FF;--c:#E8A93A;--f:#E27A93;--fi:#4CC88B;--w:#4BB8E6;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Figtree,system-ui,sans-serif}
+h1,h2,.big{font-family:'Bricolage Grotesque',Figtree,sans-serif;letter-spacing:-.02em;margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+h1{font-size:28px;font-weight:800}
+.nav{display:flex;gap:6px;align-items:center}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--s);border-radius:10px;padding:8px 12px;min-height:38px}
+button:hover{border-color:var(--ink)}
+button.pri{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%;min-height:38px}
+label{display:block;font-size:13px;color:var(--mute);margin-bottom:3px}
+.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+@media (max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--s);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:16px}
+h2{font-size:18px;font-weight:600;margin-bottom:12px}
+.row{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.ring{position:relative;width:170px;height:170px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .mid{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.big{font-size:38px;font-weight:800;line-height:1}
+.mute{color:var(--mute);font-size:13px}
+.bars{flex:1;min-width:200px;display:grid;gap:11px}
+.bar .t{display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px}
+.bar .tr{height:8px;border-radius:8px;background:var(--line);overflow:hidden}
+.bar .fl{height:100%;border-radius:8px;transition:width .35s}
+.coach{border-left:4px solid var(--ink);padding:2px 0 2px 12px;margin:0 0 10px}
+.coach b{display:block}
+.coach.warn{border-color:var(--f)}.coach.good{border-color:var(--fi)}
+.meal{display:grid;grid-template-columns:58px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.meal .time{font-weight:600}
+.meal small{color:var(--mute)}
+.x{border:none;background:none;color:var(--mute);padding:4px 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border-radius:999px;padding:6px 14px}
+.chip[aria-pressed="true"]{background:var(--fi);border-color:var(--fi);color:#fff;font-weight:600}
+.water{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.empty{color:var(--mute);padding:10px 0}
+details summary{cursor:pointer;font-weight:600}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.pick{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;margin-top:6px}
+.pv{margin:10px 0}
+.foodbox{padding-bottom:6px}
+.prow{display:grid;grid-template-columns:1fr 100px 150px auto;gap:8px;margin-top:8px;align-items:center}
+@media (max-width:560px){.prow{grid-template-columns:1fr 90px auto}.prow .rk{grid-column:1/-1}}
+table{width:100%;border-collapse:collapse;margin-top:6px}
+th,td{text-align:right;padding:7px 8px;border-top:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:600;color:var(--mute);font-size:13px;border-top:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Shred Log</h1>
+  <div class="nav">
+    <button id="prev" aria-label="Previous day">‹</button>
+    <input type="date" id="date" aria-label="Date" style="width:auto">
+    <button id="next" aria-label="Next day">›</button>
+    <button id="todayBtn">Today</button>
+  </div>
+</header>
 
+<div class="grid">
+<div>
+  <div class="card"><div class="hero">
+    <div class="ring"><svg width="170" height="170" viewBox="0 0 170 170"><circle cx="85" cy="85" r="74" fill="none" stroke="var(--line)" stroke-width="14"/><circle id="arc" cx="85" cy="85" r="74" fill="none" stroke="var(--ink)" stroke-width="14" stroke-linecap="round" stroke-dasharray="465" stroke-dashoffset="465" style="transition:stroke-dashoffset .4s"/></svg>
+    <div class="mid"><div class="big" id="left">0</div><div class="mute" id="leftLbl">kcal left</div></div></div>
+    <div class="bars" id="bars"></div>
+  </div></div>
+
+  <div class="card"><h2>Coach</h2><div id="coach"></div></div>
+
+  <div class="card"><h2>Meals</h2>
+    <div id="meals"></div>
+    <div class="foodbox"><label for="fq">Search a food or drink</label>
+<input id="fq" placeholder="Try “sprite juice”, chicken breast, oats" autocomplete="off">
+<div id="fres"></div>
+<div id="fsel" hidden>
+<div class="row" style="margin-top:10px">
+<div><label for="ft">Time</label><input id="ft" type="time"></div>
+<div><label for="fa">Amount</label><input id="fa" type="number" min="0" step="any" inputmode="decimal" value="100"></div>
+<div><label for="fu">Unit</label><select id="fu"></select></div>
+</div>
+<p id="fprev" class="pv"></p>
+<button class="pri" id="addFood">Add to meals</button>
+</div></div>
+<details style="margin-top:12px"><summary>Add a food from its pack label</summary>
+<div class="row" style="margin-top:10px">
+<div style="grid-column:span 2"><label for="cn">Name and brand</label><input id="cn" placeholder="Amul High Protein Paneer"></div>
+<div><label for="cu">Label is per 100</label><select id="cu"><option value="g">g</option><option value="ml">ml</option></select></div>
+</div>
+<div class="row" style="margin-top:10px">
+<div><label for="ck">Calories</label><input id="ck" type="number" min="0" step="any"></div>
+<div><label for="cp">Protein</label><input id="cp" type="number" min="0" step="any"></div>
+<div><label for="cc">Carbs</label><input id="cc" type="number" min="0" step="any"></div>
+<div><label for="cf">Fat</label><input id="cf" type="number" min="0" step="any"></div>
+<div><label for="cfi">Fiber</label><input id="cfi" type="number" min="0" step="any"></div>
+</div>
+<p class="mute" style="margin:8px 0">Copy the “per 100 g” or “per 100 ml” column from the nutrition label.</p>
+<button id="saveCustom">Save food</button></details>
+<details style="margin-top:12px"><summary>Enter macros manually</summary>
+    <div class="row" style="margin-top:10px">
+      <div><label for="mt">Time</label><input id="mt" type="time"></div>
+      <div style="grid-column:span 2"><label for="mn">Meal</label><input id="mn" placeholder="Chicken, rice, broccoli"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div><label for="mp">Protein (g)</label><input id="mp" type="number" min="0" inputmode="decimal"></div>
+      <div><label for="mc">Carbs (g)</label><input id="mc" type="number" min="0" inputmode="decimal"></div>
+      <div><label for="mf">Fat (g)</label><input id="mf" type="number" min="0" inputmode="decimal"></div>
+      <div><label for="mfi">Fiber (g)</label><input id="mfi" type="number" min="0" inputmode="decimal"></div>
+      <div><label for="mk">Calories</label><input id="mk" type="number" min="0" inputmode="decimal" placeholder="auto"></div>
+    </div>
+    <p class="mute" style="margin:8px 0">Leave calories empty to calculate them from protein, carbs and fat.</p>
+    <button class="pri" id="addMeal">Add meal</button></details>
+  </div>
+</div>
+
+<div>
+  <div class="card"><h2>Weight today</h2>
+    <div class="row"><div><label for="dw">Weight (kg)</label><input id="dw" type="number" step="0.1" min="0" inputmode="decimal"></div></div>
+    <div id="trend" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card"><h2>Water</h2>
+    <div class="bar"><div class="t"><span id="wtxt"></span><span class="mute" id="wgoal"></span></div><div class="tr"><div class="fl" id="wfl" style="background:var(--w)"></div></div></div>
+    <div class="water"><button data-w="250">+250 ml</button><button data-w="500">+500 ml</button><button data-w="-250">−250 ml</button></div>
+  </div>
+
+  <div class="card"><h2>Supplements</h2>
+    <div class="chips" id="sup"></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><input id="ns" placeholder="Add a supplement"><button id="addSup">Add</button></div>
+  </div>
+
+  <div class="card"><h2>Your numbers</h2>
+    <div class="row">
+      <div><label for="psex">Sex</label><select id="psex"><option value="m">Male</option><option value="f">Female</option></select></div>
+      <div><label for="page">Age</label><input id="page" type="number" min="14" max="90"></div>
+      <div><label for="ph">Height (cm)</label><input id="ph" type="number" min="100" max="230"></div>
+      <div><label for="pw">Starting weight (kg)</label><input id="pw" type="number" step="0.1"></div>
+      <div><label for="pact">Activity</label><select id="pact"><option value="1.2">Desk job, no training</option><option value="1.375">Train 1–3 days</option><option value="1.55">Train 3–5 days</option><option value="1.725">Train 6–7 days</option></select></div>
+      <div><label for="pm">Maintenance kcal</label><input id="pm" type="number" placeholder="auto"></div>
+      <div><label for="prate">Fat loss pace</label><select id="prate"><option value="0.35">Gentle · 0.35 kg/wk</option><option value="0.5">Steady · 0.5 kg/wk</option><option value="0.75">Aggressive · 0.75 kg/wk</option></select></div>
+    </div>
+    <p class="mute" id="calcNote" style="margin:10px 0 0"></p>
+  </div>
+</div>
+</div>
+<div class="card" id="prep"><h2>Meal prep calculator</h2>
+<p class="mute" style="margin:-6px 0 12px">List your ingredients and their weights to get the macros. Nothing here is added to your daily log.</p>
+<div class="row" style="margin-bottom:10px"><div style="grid-column:span 2"><label for="pn">Recipe name</label><input id="pn" placeholder="Chicken rice bowl"></div><div><label for="psv">Servings</label><input id="psv" type="number" min="1" step="1"></div><div><label for="pcw">Cooked weight (g, optional)</label><input id="pcw" type="number" min="0"></div></div>
+<div id="prows"></div><datalist id="plist"></datalist>
+<div style="display:flex;gap:8px;margin:12px 0"><button id="padd">Add ingredient</button><button id="pclear">Clear recipe</button></div>
+<div id="pout"></div></div>
+<p class="mute">Your data is saved in this browser only. Estimates are a starting point, so adjust using your weekly weight trend.</p>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),KEY='shred-log-v1';
+let S=null;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+S=S||{p:{sex:'m',age:25,h:175,w:80,act:1.55,manual:'',rate:0.5},days:{},sup:['Creatine','Whey','Multivitamin','Omega-3']};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const iso=d=>{const z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,10)};
+let cur=iso(new Date());
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const n=v=>Math.round(+v||0);
+const D=(d=cur)=>S.days[d]||(S.days[d]={w:'',water:0,sup:[],meals:[]});
+const has=d=>S.days[d];
+
+function weightAt(d){const ks=Object.keys(S.days).filter(k=>k<=d&&S.days[k].w).sort();return ks.length?+S.days[ks.pop()].w:+S.p.w}
+function targets(){
+  const p=S.p,w=weightAt(cur),bmr=10*w+6.25*p.h-5*p.age+(p.sex==='m'?5:-161);
+  const maint=+p.manual||Math.round(bmr*p.act),floor=p.sex==='m'?1500:1200;
+  const deficit=Math.round(p.rate*7700/7),raw=maint-deficit,kcal=Math.max(floor,Math.round(raw));
+  const pr=n(2.2*w),fat=n(0.8*w),carb=Math.max(0,n((kcal-pr*4-fat*9)/4));
+  return{w,maint,deficit,kcal,pr,fat,carb,fiber:Math.max(25,n(kcal/1000*14)),water:n(w*35),floored:raw<floor,floor};
+}
+function totals(d=cur){return D(d).meals.reduce((a,m)=>({k:a.k+m.k,p:a.p+m.p,c:a.c+m.c,f:a.f+m.f,fi:a.fi+m.fi}),{k:0,p:0,c:0,f:0,fi:0})}
+
+function weeklyTrend(){
+  const pts=Object.keys(S.days).filter(k=>S.days[k].w&&k<=cur).sort().slice(-14);
+  if(pts.length<4)return null;
+  const t0=new Date(pts[0]).getTime(),xs=pts.map(k=>(new Date(k)-t0)/864e5),ys=pts.map(k=>+S.days[k].w);
+  const mx=xs.reduce((a,b)=>a+b)/xs.length,my=ys.reduce((a,b)=>a+b)/ys.length;
+  const den=xs.reduce((a,x)=>a+(x-mx)**2,0);if(!den||xs[xs.length-1]<6)return null;
+  return xs.reduce((a,x,i)=>a+(x-mx)*(ys[i]-my),0)/den*7;
+}
+
+function bar(label,val,goal,color,unit='g'){
+  const pct=Math.min(100,goal?val/goal*100:0);
+  return `<div class="bar"><div class="t"><span>${label}</span><span><b>${n(val)}</b> / ${goal}${unit}</span></div><div class="tr"><div class="fl" style="width:${pct}%;background:${color}"></div></div></div>`;
+}
+
+function render(){
+  const T=targets(),t=totals(),d=D();
+  $('#date').value=cur;
+  const left=T.kcal-t.k;
+  $('#left').textContent=Math.abs(n(left));
+  $('#leftLbl').textContent=left>=0?`of ${T.kcal} kcal left`:'kcal over target';
+  const arc=$('#arc');arc.style.strokeDashoffset=465*(1-Math.min(1,t.k/T.kcal));
+  arc.style.stroke=left<0?'var(--f)':'var(--ink)';
+  $('#bars').innerHTML=bar('Protein',t.p,T.pr,'var(--p)')+bar('Carbs',t.c,T.carb,'var(--c)')+bar('Fat',t.f,T.fat,'var(--f)')+bar('Fiber',t.fi,T.fiber,'var(--fi)');
+  $('#calcNote').textContent=`Maintenance ${T.maint} kcal. Target ${T.kcal} kcal (${T.deficit} kcal deficit). Protein 2.2 g/kg, fat 0.8 g/kg, carbs fill the rest.`;
+
+  // meals
+  const ms=[...d.meals].sort((a,b)=>a.t.localeCompare(b.t));
+  $('#meals').innerHTML=ms.length?ms.map(m=>`<div class="meal"><span class="time">${esc(m.t||'--:--')}</span><div>${esc(m.n||'Meal')}<br><small>${n(m.p)}P · ${n(m.c)}C · ${n(m.f)}F · ${n(m.fi)} fiber</small></div><span><b>${n(m.k)}</b> kcal <button class="x" data-del="${m.id}" aria-label="Delete meal">✕</button></span></div>`).join(''):'<div class="empty">No meals yet. Add your first one below.</div>';
+
+  // water
+  $('#wtxt').textContent=`${(d.water/1000).toFixed(2)} L`;
+  $('#wgoal').textContent=`goal ${(T.water/1000).toFixed(1)} L`;
+  $('#wfl').style.width=Math.min(100,d.water/T.water*100)+'%';
+
+  // supplements
+  $('#sup').innerHTML=S.sup.map(s=>`<button class="chip" aria-pressed="${d.sup.includes(s)}" data-sup="${esc(s)}">${esc(s)}</button>`).join('');
+
+  $('#dw').value=d.w||'';
+  trendChart();coach(T,t,ms);
+}
+
+function coach(T,t,ms){
+  const tips=[],add=(c,h,b)=>tips.push(`<div class="coach ${c}"><b>${h}</b>${b}</div>`);
+  const left=T.kcal-t.k,pg=T.pr-t.p;
+  if(!ms.length)add('',`Aim for ${T.pr} g protein today`,`Spread it over 3–4 meals of roughly ${n(T.pr/4)} g each. Your calorie target is ${T.kcal} kcal.`);
+  else{
+    if(left<0)add('warn',`${-n(left)} kcal over target`,'One high day won’t stall fat loss. Add a 30-minute walk, keep the next meals protein-led, and return to target tomorrow without skipping meals.');
+    else if(left<150)add('good','Calories nearly done',`${n(left)} kcal left. Close the day with lean protein or a high-fiber snack.`);
+    else add('',`${n(left)} kcal left to eat`,pg>0?`Prioritize protein: ${n(pg)} g to go. A ${n(Math.min(pg,45))} g serving of lean meat, fish, eggs or Greek yogurt fits well.`:'Protein is covered. Fill the rest with carbs around training and vegetables.');
+    if(pg>0&&left>=150&&left<400)add('warn','Protein is the priority',`Only ${n(left)} kcal remain and ${n(pg)} g protein is still needed. Choose lean sources over carbs and fats.`);
+    if(T.kcal-t.k<400&&t.fi<T.fiber*.7)add('',`Fiber is at ${n(t.fi)} g of ${T.fiber} g`,'Add vegetables, berries, oats or legumes. Fiber keeps hunger down on a deficit.');
+    const low=ms.filter(m=>m.p<20&&m.k>250).length;
+    if(low)add('',`${low} meal${low>1?'s have':' has'} under 20 g protein`,'Aim for 25–40 g protein per meal to support muscle while cutting.');
+    if(ms.length>1){let big=0;for(let i=1;i<ms.length;i++){const a=ms[i-1].t.split(':'),b=ms[i].t.split(':');if(a.length>1&&b.length>1)big=Math.max(big,(+b[0]*60+ +b[1])-(+a[0]*60+ +a[1]))}
+      if(big>360)add('',`${Math.round(big/60)} hour gap between meals`,'Long gaps often lead to overeating later. Plan a protein snack in between.');}
+  }
+  const d=D(),wp=T.water-d.water;
+  if(wp>0&&d.water<T.water*.5)add('',`Drink ${(wp/1000).toFixed(1)} L more water`,'Keep a bottle at your desk and finish half of your goal by mid-afternoon.');
+  const tr=weeklyTrend();
+  if(tr!==null){const pace=-tr,tgt=S.p.rate;
+    if(pace<tgt*.5)add('warn',`Weight is moving ${pace.toFixed(2)} kg/week`,`Target is ${tgt} kg/week. If your logging is accurate, cut about 150 kcal or add 2,000 daily steps.`);
+    else if(pace>T.w*0.0125)add('warn',`Losing ${pace.toFixed(2)} kg/week, which is fast`,'Add about 150 kcal, mostly carbs, to protect muscle and training performance.');
+    else add('good',`On track: ${pace.toFixed(2)} kg/week`,'Keep going and review again next week.');
+  }else add('','Log your weight daily','After 7 days of weigh-ins you’ll get pace feedback based on your trend.');
+  if(T.floored)add('warn','Target hit the safe minimum',`Calories are held at ${T.floor} kcal. Choose a gentler pace or raise activity instead of eating less.`);
+  const ss=S.sup.filter(s=>!d.sup.includes(s));
+  if(S.sup.length&&ss.length)add('',`Not taken yet: ${esc(ss.join(', '))}`,'');
+  $('#coach').innerHTML=tips.join('');
+}
+
+function trendChart(){
+  const ks=Object.keys(S.days).filter(k=>S.days[k].w).sort().slice(-30),el=$('#trend');
+  if(ks.length<2){el.innerHTML='<div class="mute">Log weight on two or more days to see your trend.</div>';return}
+  const ys=ks.map(k=>+S.days[k].w),mn=Math.min(...ys)-.5,mx=Math.max(...ys)+.5,W=420,H=110;
+  const pts=ys.map((y,i)=>`${(i/(ks.length-1)*(W-20)+10).toFixed(1)},${(H-10-(y-mn)/(mx-mn)*(H-20)).toFixed(1)}`);
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img" aria-label="Weight trend"><polyline points="${pts.join(' ')}" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/>${pts.map(p=>`<circle cx="${p.split(',')[0]}" cy="${p.split(',')[1]}" r="3.5" fill="var(--ink)"/>`).join('')}</svg><div class="mute" style="display:flex;justify-content:space-between"><span>${ys[0]} kg</span><span>${ys[ys.length-1]} kg now</span></div>`;
+}
+
+// events
+const shift=k=>{const d=new Date(cur+'T12:00:00');d.setDate(d.getDate()+k);cur=iso(d);fillMealTime();render()};
+$('#prev').onclick=()=>shift(-1);$('#next').onclick=()=>shift(1);
+$('#todayBtn').onclick=()=>{cur=iso(new Date());render()};
+$('#date').onchange=e=>{if(e.target.value){cur=e.target.value;render()}};
+$('#dw').oninput=e=>{D().w=e.target.value;save();const T=targets(),t=totals();trendChart();coach(T,t,[...D().meals].sort((a,b)=>a.t.localeCompare(b.t)))};
+$('#dw').onchange=()=>render();
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.w){const d=D();d.water=Math.max(0,d.water+ +b.dataset.w);save();render()}
+  if(b.dataset.sup){const d=D(),i=d.sup.indexOf(b.dataset.sup);i<0?d.sup.push(b.dataset.sup):d.sup.splice(i,1);save();render()}
+  if(b.dataset.del){const d=D();d.meals=d.meals.filter(m=>m.id!==b.dataset.del);save();render()}
+});
+$('#addSup').onclick=()=>{const v=$('#ns').value.trim();if(v&&!S.sup.includes(v)){S.sup.push(v);save();$('#ns').value='';render()}};
+$('#addMeal').onclick=()=>{
+  const p=+$('#mp').value||0,c=+$('#mc').value||0,f=+$('#mf').value||0,fi=+$('#mfi').value||0;
+  let k=+$('#mk').value;if(!k)k=p*4+c*4+f*9;
+  if(!k&&!p&&!c&&!f){$('#mp').focus();return}
+  D().meals.push({id:String(Date.now()),t:$('#mt').value,n:$('#mn').value.trim(),k,p,c,f,fi});save();
+  ['mn','mp','mc','mf','mfi','mk'].forEach(i=>$('#'+i).value='');fillMealTime();render();
+};
+function fillMealTime(){const d=new Date();$('#mt').value=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+const P={psex:'sex',page:'age',ph:'h',pw:'w',pact:'act',pm:'manual',prate:'rate'};
+for(const [id,k] of Object.entries(P)){const el=$('#'+id);el.value=S.p[k];el.oninput=()=>{S.p[k]=['psex'].includes(id)?el.value:(el.value===''?'':+el.value);save();render()}}
+/* ---- Food database: per 100 g (or 100 ml). [name, unit, kcal, protein, carbs, fat, fiber, search words, pieces] ---- */
+S.custom=S.custom||[];
+const DB=[
+['Sprite (India)','ml',49,0,12.2,0,0,'sprite juice lemon lime soda cold drink fizzy',[['200 ml glass',200],['300 ml can',300],['600 ml bottle',600]]],
+['Orange juice','ml',45,0.7,10.4,0.2,0.2,'juice',[['250 ml glass',250]]],
+['Chicken breast (raw)','g',120,22.5,0,2.6,0,'chicken',[]],
+['Chicken breast (cooked)','g',165,31,0,3.6,0,'chicken grilled',[]],
+['Egg (whole)','g',143,12.6,0.7,9.5,0,'eggs boiled',[['1 egg (50 g)',50]]],
+['Egg white','g',52,10.9,0.7,0.2,0,'eggs',[['1 white (33 g)',33]]],
+['White rice (cooked)','g',130,2.7,28,0.3,0.4,'chawal',[]],
+['White rice (raw)','g',365,7.1,80,0.7,1.3,'chawal',[]],
+['Brown rice (cooked)','g',123,2.7,25.6,1,1.6,'',[]],
+['Rolled oats (raw)','g',389,16.9,66.3,6.9,10.6,'oatmeal',[]],
+['Wheat flour atta (raw)','g',340,13.2,72,2.5,10.7,'roti chapati',[['1 roti (30 g flour)',30]]],
+['Bread (white)','g',265,9,49,3.2,2.7,'slice',[['1 slice (28 g)',28]]],
+['Paneer (typical)','g',290,18,3,22,0,'cottage cheese',[]],
+['Curd / dahi (whole milk)','g',61,3.5,4.7,3.3,0,'yogurt',[]],
+['Greek yogurt (nonfat)','g',59,10.2,3.6,0.4,0,'',[]],
+['Whey protein (typical)','g',400,80,10,5,0,'scoop',[['1 scoop (30 g)',30]]],
+['Milk (whole)','ml',61,3.2,4.8,3.3,0,'',[['250 ml glass',250]]],
+['Banana','g',89,1.1,22.8,0.3,2.6,'',[['1 medium (118 g)',118]]],
+['Apple','g',52,0.3,13.8,0.2,2.4,'',[['1 medium (182 g)',182]]],
+['Potato (boiled)','g',87,1.9,20.1,0.1,1.8,'aloo',[]],
+['Sweet potato (raw)','g',86,1.6,20.1,0.1,3,'',[]],
+['Broccoli','g',34,2.8,6.6,0.4,2.6,'',[]],
+['Spinach','g',23,2.9,3.6,0.4,2.2,'palak',[]],
+['Toor dal (raw)','g',343,22,63,1.5,15,'lentils pigeon pea',[]],
+['Chickpeas (cooked)','g',164,8.9,27.4,2.6,7.6,'chana',[]],
+['Kidney beans (cooked)','g',127,8.7,22.8,0.5,6.4,'rajma',[]],
+['Soya chunks (raw)','g',345,52,33,0.5,13,'nutrela',[]],
+['Tofu (firm)','g',144,17.3,2.8,8.7,2.3,'',[]],
+['Peanuts','g',567,25.8,16.1,49.2,8.5,'groundnut',[]],
+['Almonds','g',579,21.2,21.6,49.9,12.5,'badam',[]],
+['Peanut butter','g',588,25,20,50,6,'',[['1 tbsp (16 g)',16]]],
+['Ghee','g',876,0.3,0,99.5,0,'butter oil',[['1 tsp (5 g)',5]]],
+['Olive oil','g',884,0,0,100,0,'oil',[['1 tbsp (13.5 g)',13.5]]],
+['Salmon (raw)','g',208,20.4,0,13.4,0,'fish',[]],
+['Tuna (canned in water)','g',116,25.5,0,0.8,0,'fish',[]],
+['Pasta (cooked)','g',158,5.8,30.9,0.9,1.8,'macaroni',[]],
+['Avocado','g',160,2,8.5,14.7,6.7,'',[]],
+['Cucumber','g',15,0.7,3.6,0.1,0.5,'salad',[]],
+/* oils and fats */
+['Coconut oil','g',862,0,0,100,0,'oil nariyal',[['1 tbsp (13.6 g)',13.6]]],
+['Sunflower oil','g',884,0,0,100,0,'oil cooking refined',[['1 tbsp (13.6 g)',13.6]]],
+['Mustard oil','g',884,0,0,100,0,'oil sarson',[['1 tbsp (13.6 g)',13.6]]],
+['Groundnut (peanut) oil','g',884,0,0,100,0,'oil',[['1 tbsp (13.6 g)',13.6]]],
+['Sesame oil','g',884,0,0,100,0,'oil til',[['1 tbsp (13.6 g)',13.6]]],
+['Butter','g',717,0.9,0.1,81.1,0,'makhan',[['1 tsp (4.7 g)',4.7]]],
+['Mayonnaise','g',680,1,0.6,75,0,'',[['1 tbsp (14 g)',14]]],
+/* nuts and seeds */
+['Cashews','g',553,18.2,30.2,43.9,3.3,'kaju nuts',[['10 cashews (16 g)',16]]],
+['Walnuts','g',654,15.2,13.7,65.2,6.7,'akhrot nuts',[]],
+['Pistachios','g',560,20.2,27.2,45.3,10.6,'pista nuts',[]],
+['Hazelnuts','g',628,15,16.7,60.8,9.7,'nuts',[]],
+['Raisins','g',299,3.1,79.2,0.5,3.7,'kismis dry fruit',[]],
+['Dates (Medjool)','g',277,1.8,75,0.2,6.7,'khajur dry fruit',[['1 date (24 g)',24]]],
+['Chia seeds','g',486,16.5,42.1,30.7,34.4,'seeds',[['1 tbsp (12 g)',12]]],
+['Flax seeds','g',534,18.3,28.9,42.2,27.3,'alsi seeds linseed',[['1 tbsp (10 g)',10]]],
+['Sunflower seeds','g',584,20.8,20,51.5,8.6,'seeds',[]],
+['Pumpkin seeds','g',559,30.2,10.7,49,6,'seeds',[]],
+['Sesame seeds','g',573,17.7,23.5,49.7,11.8,'til seeds',[]],
+['Coconut (fresh)','g',354,3.3,15.2,33.5,9,'nariyal',[]],
+/* legumes and pulses */
+['Kidney beans (raw)','g',333,23.6,60,0.8,24.9,'rajma dry',[]],
+['Chickpeas (raw)','g',378,20.5,63,6,12.2,'chana kabuli chole dry',[]],
+['Moong dal (raw)','g',347,23.9,62.6,1.2,16.3,'mung green gram lentils',[]],
+['Masoor dal (raw)','g',352,24.6,63.4,1.1,10.7,'red lentils',[]],
+['Lentils (cooked)','g',116,9,20.1,0.4,7.9,'dal',[]],
+['Black beans (cooked)','g',132,8.9,23.7,0.5,8.7,'',[]],
+['Green peas','g',81,5.4,14.5,0.4,5.7,'matar',[]],
+['Besan (chickpea flour)','g',387,22.4,57.8,6.7,10.8,'gram flour',[]],
+/* grains and flours */
+['Quinoa (cooked)','g',120,4.4,21.3,1.9,2.8,'',[]],
+['Quinoa (raw)','g',368,14.1,64.2,6.1,7,'',[]],
+['Poha (flattened rice, raw)','g',346,6.6,77.3,1.2,1.1,'rice flakes',[]],
+['Semolina suji (raw)','g',360,12.7,72.8,1.1,3.9,'rava sooji',[]],
+['Maida (refined flour)','g',364,10.3,76.3,1,2.7,'all purpose flour',[]],
+['Ragi flour (raw)','g',336,7.3,72,1.3,3.6,'nachni finger millet',[]],
+['Jowar flour (raw)','g',339,11.3,74.6,3.3,6.3,'sorghum',[]],
+['Bajra (raw)','g',378,11,73,4.2,8.5,'pearl millet',[]],
+['Barley (cooked)','g',123,2.3,28.2,0.4,3.8,'',[]],
+['Corn (sweet)','g',86,3.3,18.7,1.4,2,'maize makka',[]],
+['Cornflakes','g',357,7.5,84,0.4,3.3,'cereal',[]],
+['Whole wheat bread','g',252,12.3,42.7,3.5,6,'brown bread slice',[['1 slice (28 g)',28]]],
+['Pasta (raw)','g',371,13,74.7,1.5,3.2,'macaroni spaghetti',[]],
+['Potato (raw)','g',77,2,17.5,0.1,2.2,'aloo',[]],
+/* dairy */
+['Cheddar cheese','g',403,24.9,1.3,33.1,0,'cheese',[['1 slice (20 g)',20]]],
+['Mozzarella','g',280,27.5,3.1,17.1,0,'cheese',[]],
+['Skim milk','ml',34,3.4,5,0.1,0,'milk toned',[['250 ml glass',250]]],
+['Buttermilk','ml',40,3.3,4.8,0.9,0,'chaas',[['250 ml glass',250]]],
+['Heavy cream','g',340,2.8,2.8,36.1,0,'malai',[]],
+/* meat, fish, eggs */
+['Chicken thigh (raw)','g',121,19.7,0,4.1,0,'chicken skinless',[]],
+['Chicken thigh (cooked)','g',179,24.8,0,8.2,0,'chicken roasted',[]],
+['Goat meat (raw)','g',109,20.6,0,2.3,0,'mutton',[]],
+['Beef lean mince (raw)','g',137,21.4,0,5,0,'meat',[]],
+['Egg yolk','g',322,15.9,3.6,26.5,0,'eggs',[['1 yolk (17 g)',17]]],
+['Shrimp (raw)','g',85,20.1,0.2,0.5,0,'prawn',[]],
+['Cod / white fish (raw)','g',82,17.8,0,0.7,0,'fish',[]],
+['Sardines (canned)','g',208,24.6,0,11.5,0,'fish',[]],
+/* vegetables */
+['Onion','g',40,1.1,9.3,0.1,1.7,'pyaz',[['1 medium (110 g)',110]]],
+['Tomato','g',18,0.9,3.9,0.2,1.2,'tamatar',[['1 medium (123 g)',123]]],
+['Carrot','g',41,0.9,9.6,0.2,2.8,'gajar',[]],
+['Cauliflower','g',25,1.9,5,0.3,2,'gobi',[]],
+['Cabbage','g',25,1.3,5.8,0.1,2.5,'patta gobi',[]],
+['Capsicum (green)','g',20,0.9,4.6,0.2,1.7,'bell pepper shimla mirch',[]],
+['Mushrooms','g',22,3.1,3.3,0.3,1,'',[]],
+['Beetroot','g',43,1.6,9.6,0.2,2.8,'chukandar',[]],
+['Garlic','g',149,6.4,33.1,0.5,2.1,'lehsun',[['1 clove (3 g)',3]]],
+['Ginger','g',80,1.8,17.8,0.8,2,'adrak',[]],
+['Okra','g',33,1.9,7.5,0.2,3.2,'bhindi',[]],
+['Brinjal (eggplant)','g',25,1,5.9,0.2,3,'baingan',[]],
+['Green beans','g',31,1.8,7,0.2,2.7,'french beans',[]],
+['Pumpkin','g',26,1,6.5,0.1,0.5,'kaddu',[]],
+['Zucchini','g',17,1.2,3.1,0.3,1,'',[]],
+['Lettuce','g',15,1.4,2.9,0.2,1.3,'salad',[]],
+/* fruit */
+['Mango','g',60,0.8,15,0.4,1.6,'aam',[]],
+['Orange','g',47,0.9,11.8,0.1,2.4,'santra',[['1 medium (131 g)',131]]],
+['Grapes','g',69,0.7,18.1,0.2,0.9,'angoor',[]],
+['Watermelon','g',30,0.6,7.6,0.2,0.4,'tarbooj',[]],
+['Papaya','g',43,0.5,10.8,0.3,1.7,'papita',[]],
+['Pineapple','g',50,0.5,13.1,0.1,1.4,'ananas',[]],
+['Strawberries','g',32,0.7,7.7,0.3,2,'',[]],
+['Blueberries','g',57,0.7,14.5,0.3,2.4,'',[]],
+['Pomegranate','g',83,1.7,18.7,1.2,4,'anar',[]],
+['Guava','g',68,2.6,14.3,1,5.4,'amrud',[]],
+['Coconut water','ml',19,0.7,3.7,0.2,1.1,'nariyal pani',[['1 glass 250 ml',250]]],
+/* sweeteners, drinks, sauces */
+['Sugar (white)','g',387,0,100,0,0,'cheeni',[['1 tsp (4 g)',4]]],
+['Jaggery','g',383,0.4,98,0.1,0,'gud',[['1 tsp (5 g)',5]]],
+['Honey','g',304,0.3,82.4,0,0.2,'shahad',[['1 tbsp (21 g)',21]]],
+['Dark chocolate (70-85%)','g',598,7.8,45.9,42.6,10.9,'cocoa',[]],
+['Milk chocolate','g',535,7.7,59.4,29.7,3.4,'',[]],
+['Black coffee or plain tea','ml',1,0.1,0,0,0,'no sugar',[['1 cup 240 ml',240]]],
+['Tomato ketchup','g',101,1,27,0.1,0.3,'sauce',[['1 tbsp (17 g)',17]]],
+['Soy sauce','ml',53,8.1,4.9,0.6,0.8,'',[['1 tbsp (16 ml)',16]]]
+];
+const foods=()=>S.custom.map(x=>[x.n,x.u,x.k,x.p,x.c,x.f,x.fi,'custom',[]]).concat(DB);
+const norm=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const r1=v=>Math.round(v*10)/10;
+let res=[],sel=null;
+function find(){
+  const t=norm($('#fq').value).split(' ').filter(Boolean);
+  res=t.length?foods().filter(f=>{const h=norm(f[0]+' '+f[7]);return t.every(w=>h.includes(w))}).slice(0,8):[];
+  $('#fres').innerHTML=res.map((f,i)=>`<button class="pick" data-fi="${i}"><b>${esc(f[0])}</b><span class="mute">${f[2]} kcal · ${f[3]}P ${f[4]}C ${f[5]}F per 100 ${f[1]}</span></button>`).join('')+(t.length&&!res.length?'<div class="mute" style="margin-top:6px">No match in the built-in list.</div>':'')+(t.length&&SMP?'<button class="pick" data-look="1"><b>Look up “'+esc($('#fq').value.trim())+'” with Claude</b><span class="mute">Estimates values per 100 g or ml. You can also press Enter.</span></button>':'');
+}
+function choose(f){
+  sel=f;$('#fsel').hidden=false;
+  $('#fu').innerHTML=`<option value="b">${f[1]}</option>`+f[8].map((p,i)=>`<option value="${i}">${esc(p[0])}</option>`).join('');
+  if(f[8].length){$('#fu').value='0';$('#fa').value=1}else $('#fa').value=100;
+  prev();
+}
+function mac(){
+  const u=$('#fu').value,a=+$('#fa').value||0,q=u==='b'?a:a*sel[8][+u][1],x=q/100;
+  return{q,k:r1(sel[2]*x),p:r1(sel[3]*x),c:r1(sel[4]*x),f:r1(sel[5]*x),fi:r1(sel[6]*x)};
+}
+function prev(){if(!sel)return;const m=mac();$('#fprev').innerHTML=`<b>${n(m.k)} kcal</b> in ${r1(m.q)} ${sel[1]}<br><span class="mute">${m.p} g protein · ${m.c} g carbs · ${m.f} g fat · ${m.fi} g fiber</span>`}
+function ftime(){const d=new Date();$('#ft').value=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+$('#fq').oninput=find;
+$('#fres').onclick=e=>{const b=e.target.closest('[data-fi]');if(b)choose(res[+b.dataset.fi])};
+$('#fa').oninput=prev;$('#fu').onchange=prev;
+$('#addFood').onclick=()=>{
+  if(!sel)return;const m=mac();if(!m.q)return $('#fa').focus();
+  D().meals.push({id:String(Date.now()),t:$('#ft').value,n:`${sel[0]} (${r1(m.q)} ${sel[1]})`,k:m.k,p:m.p,c:m.c,f:m.f,fi:m.fi});save();
+  sel=null;$('#fsel').hidden=true;$('#fq').value='';find();ftime();render();
+};
+$('#saveCustom').onclick=()=>{
+  const g=i=>+$('#'+i).value||0,nm=$('#cn').value.trim();if(!nm)return $('#cn').focus();
+  const p=g('cp'),c=g('cc'),f=g('cf');
+  S.custom.push({n:nm,u:$('#cu').value,k:g('ck')||p*4+c*4+f*9,p,c,f,fi:g('cfi')});save();
+  ['cn','ck','cp','cc','cf','cfi'].forEach(i=>$('#'+i).value='');
+  $('#fq').value=nm;find();choose(foods()[S.custom.length-1]);
+};
+/* ---- Brand lookup (Claude estimate) ---- */
+let SMP=null,pend=null;
+(async()=>{try{if(window.claude)SMP=await window.claude.use('sample')}catch(e){}if($('#fq').value)find()})();
+async function lookup(){
+  const q=$('#fq').value.trim();if(!q||!SMP)return;
+  const out=$('#fres');out.innerHTML='<div class="mute" style="margin-top:8px">Looking up…</div>';
+  try{
+    const r=await SMP.json('Give typical nutrition label values per 100 g (or per 100 ml for drinks) for this food or brand: "'+q+'". Use the Indian market version if the brand sells there. Reply with only JSON: {"name":string,"unit":"g" or "ml","kcal":number,"protein":number,"carbs":number,"fat":number,"fiber":number}. Give your best typical values.',{modelTier:'quick'});
+    const v=[r.kcal,r.protein,r.carbs,r.fat,r.fiber];
+    if(!r||!v.every(x=>typeof x==='number'&&isFinite(x)&&x>=0)||r.kcal>900)throw{code:'bad'};
+    pend={n:String(r.name||q).slice(0,60),u:r.unit==='ml'?'ml':'g',k:r.kcal,p:r.protein,c:r.carbs,f:r.fat,fi:r.fiber};
+    out.innerHTML=`<div class="coach warn" style="margin-top:10px"><b>${esc(pend.n)} (estimate)</b>${pend.k} kcal · ${pend.p}P ${pend.c}C ${pend.f}F ${pend.fi} fiber per 100 ${pend.u}<br><span class="mute">From Claude’s general knowledge, not read live from the web. Compare it with the pack before relying on it.</span><br><button class="pri" data-useai="1" style="margin-top:8px">Use this food</button></div>`;
+  }catch(e){
+    out.innerHTML='<div class="mute" style="margin-top:8px">'+(e&&e.code==='not_granted'?'Lookup was not allowed. Allow it when asked, or add the food from its pack label.':'Lookup failed. Add the food from its pack label instead.')+'</div>';
+  }
+}
+$('#fres').addEventListener('click',e=>{
+  if(e.target.closest('[data-look]'))lookup();
+  if(e.target.closest('[data-useai]')&&pend){S.custom.push({n:pend.n+' (estimate)',u:pend.u,k:pend.k,p:pend.p,c:pend.c,f:pend.f,fi:pend.fi});save();pend=null;$('#fres').innerHTML='';choose(foods()[S.custom.length-1]);plistFill()}
+});
+$('#fq').addEventListener('keydown',e=>{if(e.key==='Enter'&&!res.length)lookup()});
+
+/* ---- Meal prep calculator ---- */
+S.prep=S.prep||{n:'',sv:1,cw:'',rows:[{n:'',g:''}]};
+function plistFill(){$('#plist').innerHTML=foods().map(f=>`<option value="${esc(f[0])}">`).join('')}
+function prepRows(){
+  plistFill();
+  $('#prows').innerHTML=S.prep.rows.map((r,i)=>`<div class="prow"><input list="plist" data-i="${i}" data-k="n" value="${esc(r.n)}" placeholder="Ingredient" aria-label="Ingredient"><input type="number" min="0" step="any" data-i="${i}" data-k="g" value="${esc(r.g)}" placeholder="Weight" aria-label="Weight"><span class="rk mute" id="rk${i}"></span><button class="x" data-prm="${i}" aria-label="Remove ingredient">✕</button></div>`).join('');
+  prepCalc();
+}
+function prepCalc(){
+  const P=S.prep,m=Object.fromEntries(foods().map(f=>[f[0].toLowerCase(),f])),T={k:0,p:0,c:0,f:0,fi:0};let bad=0,any=0;
+  P.rows.forEach((r,i)=>{
+    const el=$('#rk'+i);if(!el)return;
+    if(!(r.n||'').trim()){el.textContent='';return}
+    const f=m[r.n.trim().toLowerCase()];
+    if(!f){el.textContent='not in list';bad++;return}
+    const x=(+r.g||0)/100;any+=x>0?1:0;
+    T.k+=f[2]*x;T.p+=f[3]*x;T.c+=f[4]*x;T.f+=f[5]*x;T.fi+=f[6]*x;
+    el.textContent=`${n(f[2]*x)} kcal · ${r1(f[3]*x)}P`;
+  });
+  if(!any){$('#pout').innerHTML='<div class="empty">Pick an ingredient and enter its weight to see the macros.</div>';return}
+  const sv=Math.max(1,+P.sv||1),cw=+P.cw||0;
+  const tr=(l,k)=>`<tr><td>${l}</td><td>${n(T.k*k)}</td><td>${r1(T.p*k)}</td><td>${r1(T.c*k)}</td><td>${r1(T.f*k)}</td><td>${r1(T.fi*k)}</td></tr>`;
+  $('#pout').innerHTML=(bad?`<p class="mute">${bad} ingredient${bad>1?'s are':' is'} not in the list and left out. Pick from the suggestions or save it from its pack label.</p>`:'')+
+  `<table><tr><th>${esc(P.n||'Recipe')}</th><th>kcal</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Fiber</th></tr>${tr('Whole recipe',1)}${tr('Per serving ('+sv+')',1/sv)}${cw?tr('Per 100 g cooked',100/cw):''}</table>`;
+}
+$('#pn').value=S.prep.n;$('#psv').value=S.prep.sv;$('#pcw').value=S.prep.cw;
+$('#pn').oninput=e=>{S.prep.n=e.target.value;save();prepCalc()};
+$('#psv').oninput=e=>{S.prep.sv=e.target.value;save();prepCalc()};
+$('#pcw').oninput=e=>{S.prep.cw=e.target.value;save();prepCalc()};
+$('#prows').oninput=e=>{const t=e.target,i=t.dataset.i;if(i===undefined)return;S.prep.rows[i][t.dataset.k]=t.value;save();prepCalc()};
+$('#prows').addEventListener('focusin',plistFill);
+$('#prows').onclick=e=>{const b=e.target.closest('[data-prm]');if(!b)return;S.prep.rows.splice(+b.dataset.prm,1);if(!S.prep.rows.length)S.prep.rows.push({n:'',g:''});save();prepRows()};
+$('#padd').onclick=()=>{S.prep.rows.push({n:'',g:''});save();prepRows()};
+$('#pclear').onclick=()=>{S.prep={n:'',sv:1,cw:'',rows:[{n:'',g:''}]};$('#pn').value='';$('#psv').value=1;$('#pcw').value='';save();prepRows()};
+prepRows();
+ftime();
+fillMealTime();render();
+</script>
+</body>
+</html>
